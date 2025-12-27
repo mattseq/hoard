@@ -1,0 +1,6 @@
+:80 {
+    handle_path /files/* {
+        root * /app/storage
+        file_server
+    }
+}
