@@ -84,6 +84,40 @@ app.get('/files/private/:file', authMiddleware, (req, res) => {
   res.sendFile(filePath);
 });
 
+app.get('/files/private', authMiddleware, (req, res) => {
+    const files = fs.readdirSync(PRIVATE_STORAGE_DIR)
+        .filter(f => f.endsWith('.json'))
+        .map(f => {
+            const meta = JSON.parse(fs.readFileSync(path.join(PRIVATE_STORAGE_DIR, f)));
+            return {
+                fileId: meta.fileId,
+                originalName: meta.originalName,
+                size: meta.size,
+                type: meta.type,
+                uploadedAt: meta.uploadedAt,
+                url: `/files/private/${meta.fileId}${path.extname(meta.originalName)}`
+            };
+        });
+    res.json(files);
+});
+
+app.get('/files/public', (req, res) => {
+    const files = fs.readdirSync(PUBLIC_STORAGE_DIR)
+        .filter(f => f.endsWith('.json'))
+        .map(f => {
+            const meta = JSON.parse(fs.readFileSync(path.join(PUBLIC_STORAGE_DIR, f)));
+            return {
+                fileId: meta.fileId,
+                originalName: meta.originalName,
+                size: meta.size,
+                type: meta.type,
+                uploadedAt: meta.uploadedAt,
+                url: `/files/public/${meta.fileId}${path.extname(meta.originalName)}`
+            };
+        });
+    res.json(files);
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
