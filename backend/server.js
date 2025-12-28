@@ -8,19 +8,20 @@ const { nanoid } = require('nanoid');
 const app = express();
 const PORT = 5000;
 
-const JWT_SECRET = 'supersecretkey';
+const JWT_SECRET = process.env.JWT_SECRET;
 
-const STORAGE_DIR = path.join(__dirname, 'storage');
+const PUBLIC_STORAGE_DIR = path.join(__dirname, 'public_storage');
+const PRIVATE_STORAGE_DIR = path.join(__dirname, 'private_storage');
 
-if (!fs.existsSync(STORAGE_DIR)) {
-    fs.mkdirSync(STORAGE_DIR);
+if (!fs.existsSync(PUBLIC_STORAGE_DIR)) {
+    fs.mkdirSync(PUBLIC_STORAGE_DIR);
 }
 
 app.use(express.json());
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    if (username === 'admin' && password === 'password') {
+    if (username === process.env.USERNAME && password === process.env.PASSWORD) {
         const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ token });
     }
@@ -42,18 +43,26 @@ function authMiddleware(req, res, next) {
 }
 
 app.post('/api/upload', authMiddleware, multer().single('file'), (req, res) => {
-    console.log(req.file)
+    console.log(req.file, req.body)
     const file = req.file;
     if (!file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const { isPublic } = req.body;
+
     const fileId = nanoid(12);
     const ext = path.extname(file.originalname);
-    const filePath = path.join(STORAGE_DIR, fileId + ext);
 
+    // determine storage directory
+    const storageDir = isPublic ? PUBLIC_STORAGE_DIR : PRIVATE_STORAGE_DIR
+
+    const filePath = path.join(storageDir, fileId + ext);
+
+    // write to storage
     fs.writeFileSync(filePath, file.buffer);
 
+    // save metadata
     const meta = {
         fileId,
         originalName: file.originalname,
@@ -62,16 +71,18 @@ app.post('/api/upload', authMiddleware, multer().single('file'), (req, res) => {
         type: file.mimetype,
         uploadedAt: new Date()
     };
-    fs.writeFileSync(path.join(STORAGE_DIR, fileId + '.json'), JSON.stringify(meta));
+    fs.writeFileSync(path.join(storageDir, fileId + '.json'), JSON.stringify(meta));
 
-    res.json({ url: `/files/${fileId}${ext}` });
+    // return file URL
+    const fileUrl = isPublic ? `/files/public/${fileId}${ext}` : `/files/private/${fileId}${ext}`;
+    res.json({ url: fileUrl });
 });
 
-// app.get('/files/:file', (req, res) => {
-//   const filePath = path.join(STORAGE_DIR, req.params.file);
-//   if (!fs.existsSync(filePath)) return res.sendStatus(404);
-//   res.sendFile(filePath);
-// });
+app.get('/files/private/:file', authMiddleware, (req, res) => {
+  const filePath = path.join(PRIVATE_STORAGE_DIR, req.params.file);
+  if (!fs.existsSync(filePath)) return res.sendStatus(404);
+  res.sendFile(filePath);
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

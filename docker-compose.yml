@@ -5,7 +5,12 @@ services:
      - "5000:5000"
     volumes:
       - ./backend:/app
-      - /mnt/drive/hoard_data:/app/storage
+      - /mnt/drive/hoard_public:/app/public_storage
+      - /mnt/drive/hoard_private:/app/private_storage
+    environment:
+      - JWT_SECRET=supersecretkey
+      - USERNAME=admin
+      - PASSWORD=password
   caddy:
     image: caddy:2.10.2-alpine
     ports:
@@ -15,7 +20,8 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
-      - /mnt/drive/hoard_data:/app/storage
+      - /mnt/drive/hoard_public:/app/public_storage
+      - /mnt/drive/hoard_private:/app/private_storage
     depends_on:
       - backend
 

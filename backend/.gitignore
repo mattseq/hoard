@@ -1,2 +1,5 @@
 node_modules/
-storage/
+private_storage/
+public_storage/
+
+.env

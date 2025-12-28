@@ -1,6 +1,6 @@
 :80 {
-    handle_path /files/* {
-        root * /app/storage
+    handle_path /files/public/* {
+        root * /app/public_storage
         file_server
     }
 }
