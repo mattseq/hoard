@@ -22,6 +22,7 @@ services:
       - caddy_config:/config
       - /mnt/drive/hoard_public:/app/public_storage
       - /mnt/drive/hoard_private:/app/private_storage
+      - ./frontend/dist:/srv
     depends_on:
       - backend
 

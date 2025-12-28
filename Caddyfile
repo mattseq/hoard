@@ -3,4 +3,26 @@
         root * /app/public_storage
         file_server
     }
+
+    handle /files/public {
+        reverse_proxy backend:5000
+    }
+
+    handle /files/private/* {
+        reverse_proxy backend:5000
+    }
+
+    handle /files/private {
+        reverse_proxy backend:5000
+    }
+
+    handle /api/* {
+        reverse_proxy backend:5000
+    }
+
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
 }

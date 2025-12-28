@@ -19,16 +19,6 @@ if (!fs.existsSync(PUBLIC_STORAGE_DIR)) {
 
 app.use(express.json());
 
-app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
-    if (username === process.env.USERNAME && password === process.env.PASSWORD) {
-        const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
-    }
-
-    res.status(401).json({ message: 'Invalid credentials' });
-});
-
 function authMiddleware(req, res, next) {
     const authHeader = req.headers['authorization'];
     if (!authHeader) return res.status(401).json({ message: 'No token provided' });
@@ -41,6 +31,32 @@ function authMiddleware(req, res, next) {
         next();
     });
 }
+
+app.get('/api/auth', (req, res) => {
+    const authHeader = req.headers['authorization'];
+
+    if (!authHeader) {
+        return res.status(401);
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(401);
+        }
+
+        return res.status(200);
+    });
+});
+
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === process.env.USERNAME && password === process.env.PASSWORD) {
+        const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
+        return res.json({ token });
+    }
+
+    return res.status(401).json({ message: 'Invalid credentials' });
+});
 
 app.post('/api/upload', authMiddleware, multer().single('file'), (req, res) => {
     console.log(req.file, req.body)
@@ -75,13 +91,13 @@ app.post('/api/upload', authMiddleware, multer().single('file'), (req, res) => {
 
     // return file URL
     const fileUrl = isPublic ? `/files/public/${fileId}${ext}` : `/files/private/${fileId}${ext}`;
-    res.json({ url: fileUrl });
+    return res.json({ url: fileUrl });
 });
 
 app.get('/files/private/:file', authMiddleware, (req, res) => {
   const filePath = path.join(PRIVATE_STORAGE_DIR, req.params.file);
   if (!fs.existsSync(filePath)) return res.sendStatus(404);
-  res.sendFile(filePath);
+  return res.sendFile(filePath);
 });
 
 app.get('/files/private', authMiddleware, (req, res) => {
@@ -98,7 +114,7 @@ app.get('/files/private', authMiddleware, (req, res) => {
                 url: `/files/private/${meta.fileId}${path.extname(meta.originalName)}`
             };
         });
-    res.json(files);
+    return res.json(files);
 });
 
 app.get('/files/public', (req, res) => {
@@ -115,7 +131,7 @@ app.get('/files/public', (req, res) => {
                 url: `/files/public/${meta.fileId}${path.extname(meta.originalName)}`
             };
         });
-    res.json(files);
+    return res.json(files);
 });
 
 app.listen(PORT, () => {
