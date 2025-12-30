@@ -1,19 +1,17 @@
-#root {
+body {
   height: 100%;
   margin: 0;
   padding: 0;
+  display: flex;
+  background-color: #f0f2f5;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
-  margin: 0;
-  padding: 0;
-  height: 100%;
+.login-page {
   display: flex;
+  height: 100vh;
+  width: 100vw;
   justify-content: center;
   align-items: center;
-  background-color: #f0f2f5;
 }
 
 .login-container {
@@ -50,5 +48,48 @@ body {
   border-radius: 4px;
   background-color: #007bff;
   color: white;
+  cursor: pointer;
+}
+
+.file-page {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+}
+
+.files-container {
+  display: flex;
+  flex-direction: column;
+  padding: 2em;
+  width: 50%;
+}
+
+.files-container h2 {
+  margin-bottom: 1em;
+}
+
+.files-container ul {
+  list-style-type: none;
+  padding: 0;
+  width: 100%;
+}
+
+.files-container li {
+  background-color: white;
+  margin-bottom: 0.5em;
+  padding: 1em;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.files-container a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.files-container a:hover {
+  text-decoration: underline;
   cursor: pointer;
 }
