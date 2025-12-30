@@ -1,14 +1,15 @@
 const express = require('express');
 const multer = require('multer');
-const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
 const { nanoid } = require('nanoid');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 
 const app = express();
 const PORT = 5000;
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const SESSION_SECRET_KEY = process.env.SESSION_SECRET_KEY
 
 const PUBLIC_STORAGE_DIR = path.join(__dirname, 'public_storage');
 const PRIVATE_STORAGE_DIR = path.join(__dirname, 'private_storage');
@@ -16,43 +17,34 @@ const PRIVATE_STORAGE_DIR = path.join(__dirname, 'private_storage');
 if (!fs.existsSync(PUBLIC_STORAGE_DIR)) {
     fs.mkdirSync(PUBLIC_STORAGE_DIR);
 }
-
-app.use(express.json());
-
-function authMiddleware(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) return res.status(401).json({ message: 'No token provided' });
-
-    const token = authHeader && authHeader.split(' ')[1];
-    
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: 'Invalid token' });
-        req.user = user;
-        next();
-    });
+if (!fs.existsSync(PRIVATE_STORAGE_DIR)) {
+    fs.mkdirSync(PRIVATE_STORAGE_DIR);
 }
 
-app.get('/api/auth', (req, res) => {
-    const authHeader = req.headers['authorization'];
+app.use(express.json());
+app.use(cookieParser());
+app.use(session({
+    secret: SESSION_SECRET_KEY,
+    resave: false,
+    saveUninitialized: false
+}));
 
-    if (!authHeader) {
-        return res.status(401);
+function authMiddleware(req, res, next) {
+    if (!req.session.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
     }
-    const token = authHeader.split(' ')[1];
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(401);
-        }
+    next();
+}
 
-        return res.status(200);
-    });
+app.get('/api/auth', authMiddleware, (req, res) => {
+    return res.status(200).json({ loggedIn: true });
 });
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     if (username === process.env.USERNAME && password === process.env.PASSWORD) {
-        const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
-        return res.json({ token });
+        req.session.user = { username };
+        return res.status(200).json({ success: true });
     }
 
     return res.status(401).json({ message: 'Invalid credentials' });

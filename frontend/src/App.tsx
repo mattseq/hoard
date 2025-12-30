@@ -18,6 +18,7 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   const [publicFiles, setPublicFiles] = useState<FileMeta[]>([]);
+  const [privateFiles, setPrivateFiles] = useState<FileMeta[]>([]);
 
   useEffect(() => {
     fetch ('/api/auth', {
@@ -26,9 +27,12 @@ function App() {
     }).then(res => {
       if (res.ok) {
         setLoggedIn(true);
+        fetchPublicFiles();
+        fetchPrivateFiles();
         console.log(res);
       } else {
         setLoggedIn(false);
+        console.log(res)
       }
     })
     .catch(() => setLoggedIn(false));
@@ -50,6 +54,7 @@ function App() {
       console.log('Login successful!');
       setLoggedIn(true);
       fetchPublicFiles();
+      fetchPrivateFiles();
     } else {
       console.log('Login failed. Please check your credentials.');
       setLoggedIn(false);
@@ -68,6 +73,20 @@ function App() {
       setPublicFiles(data);
     } else {
       console.log('Failed to fetch public files.');
+    }
+  }
+  async function fetchPrivateFiles() {
+    const res = await fetch('/files/private', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      console.log('Private files:', data);
+      setPrivateFiles(data);
+    } else {
+      console.log('Failed to fetch private files.');
     }
   }
 
@@ -90,7 +109,7 @@ function App() {
           <div className="private-files files-container">
             <h2>Private Files</h2>
             <ul>
-              {publicFiles.map(file => (
+              {privateFiles.map(file => (
                 <li key={file.fileId}>
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
                     {file.originalName} ({(file.size / 1024).toFixed(2)} KB)
