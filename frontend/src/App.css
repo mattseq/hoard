@@ -3,8 +3,8 @@ body {
   margin: 0;
   padding: 0;
   display: flex;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 .login-page {
@@ -22,6 +22,7 @@ body {
   justify-content: center;
   padding: 2em;
   border-radius: 8px;
+  background: var(--color-surface);
 }
 
 .login-form {
@@ -36,8 +37,10 @@ body {
   margin: 0.5em 0;
   padding: 0.5em;
   font-size: 1em;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .login-form button {
@@ -46,9 +49,12 @@ body {
   font-size: 1em;
   border: none;
   border-radius: 4px;
-  background-color: var(--accent-color);
-  color: var(--bg-color);
+  background-color: var(--color-primary);
+  color: #fff;
   cursor: pointer;
+}
+.login-form button:hover {
+  background-color: var(--color-secondary);
 }
 
 .file-page {
@@ -76,20 +82,22 @@ body {
 }
 
 .files-container li {
-  background-color: var(--container-bg-color);
+  background-color: var(--color-surface);
   margin-bottom: 0.5em;
   padding: 1em;
   border-radius: 6px;
   width: 100%;
   box-sizing: border-box;
+  border: 1px solid var(--color-border);
 }
 
 .files-container a {
   text-decoration: none;
-  color: var(--accent-color);
+  color: var(--color-primary);
+  font-weight: 500;
 }
-
 .files-container a:hover {
   text-decoration: underline;
+  color: var(--color-secondary);
   cursor: pointer;
 }

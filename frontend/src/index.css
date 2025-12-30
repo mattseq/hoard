@@ -13,9 +13,10 @@
   margin: 0;
   padding: 0;
 
-  --bg-color: #f0f2f5;
-  --container-bg-color: #ffffff;
-  --text-color: #333333;
-  --accent-color: #007bff;
-  --border-color: #cccccc;
+  --color-bg: #23272f;
+  --color-surface: #2e3440;
+  --color-text: #f4f6fb;
+  --color-primary: #4f8cff;
+  --color-secondary: #2658b3;
+  --color-border: #3b4252;
 }
