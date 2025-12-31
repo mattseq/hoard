@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import FileDropZone from './FileDropZone';
 
 function App() {
 
@@ -90,11 +91,57 @@ function App() {
     }
   }
 
+  function publicFileUpload(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    fetch('/api/upload/public', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+    .then(res => {
+      if (res.ok) {
+        console.log('File uploaded successfully!');
+        fetchPublicFiles();
+      }
+      else {
+        console.log('File upload failed.');
+      }
+    })
+    .catch(() => {
+      console.log('File upload failed.');
+    });
+  }
+
+  function privateFileUpload(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    fetch('/api/upload/private', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+    .then(res => {
+      if (res.ok) {
+        console.log('File uploaded successfully!');
+        fetchPrivateFiles();
+      }
+      else {
+        console.log('File upload failed.');
+      }
+    })
+    .catch(() => {
+      console.log('File upload failed.');
+    });
+  }
+
   return (
     <>
       {loggedIn ? (
         <div className="file-page">
-          <div className="public-files files-container">
+          <FileDropZone onFileUpload={publicFileUpload} className="public-files files-container">
             <h2>Public Files</h2>
             <ul>
               {publicFiles.map(file => (
@@ -105,8 +152,8 @@ function App() {
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="private-files files-container">
+          </FileDropZone>
+          <FileDropZone onFileUpload={privateFileUpload} className="private-files files-container">
             <h2>Private Files</h2>
             <ul>
               {privateFiles.map(file => (
@@ -117,7 +164,7 @@ function App() {
                 </li>
               ))}
             </ul>
-          </div>
+          </FileDropZone>
         </div>
       ) : (
         <div className="login-page">

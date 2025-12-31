@@ -50,22 +50,17 @@ app.post('/api/login', (req, res) => {
     return res.status(401).json({ message: 'Invalid credentials' });
 });
 
-app.post('/api/upload', authMiddleware, multer().single('file'), (req, res) => {
+app.post('/api/upload/public', multer().single('file'), (req, res) => {
     console.log(req.file, req.body)
     const file = req.file;
     if (!file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const { isPublic } = req.body;
-
     const fileId = nanoid(12);
     const ext = path.extname(file.originalname);
 
-    // determine storage directory
-    const storageDir = isPublic ? PUBLIC_STORAGE_DIR : PRIVATE_STORAGE_DIR
-
-    const filePath = path.join(storageDir, fileId + ext);
+    const filePath = path.join(PUBLIC_STORAGE_DIR, fileId + ext);
 
     // write to storage
     fs.writeFileSync(filePath, file.buffer);
@@ -79,10 +74,41 @@ app.post('/api/upload', authMiddleware, multer().single('file'), (req, res) => {
         type: file.mimetype,
         uploadedAt: new Date()
     };
-    fs.writeFileSync(path.join(storageDir, fileId + '.json'), JSON.stringify(meta));
+    fs.writeFileSync(path.join(PUBLIC_STORAGE_DIR, fileId + '.json'), JSON.stringify(meta));
 
     // return file URL
-    const fileUrl = isPublic ? `/files/public/${fileId}${ext}` : `/files/private/${fileId}${ext}`;
+    const fileUrl = `/files/public/${fileId}${ext}`;
+    return res.json({ url: fileUrl });
+});
+
+app.post('/api/upload/private', authMiddleware, multer().single('file'), (req, res) => {
+    console.log(req.file, req.body)
+    const file = req.file;
+    if (!file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const fileId = nanoid(12);
+    const ext = path.extname(file.originalname);
+
+    const filePath = path.join(PRIVATE_STORAGE_DIR, fileId + ext);
+
+    // write to storage
+    fs.writeFileSync(filePath, file.buffer);
+
+    // save metadata
+    const meta = {
+        fileId,
+        originalName: file.originalname,
+        path: filePath,
+        size: file.size,
+        type: file.mimetype,
+        uploadedAt: new Date()
+    };
+    fs.writeFileSync(path.join(PRIVATE_STORAGE_DIR, fileId + '.json'), JSON.stringify(meta));
+
+    // return file URL
+    const fileUrl = `/files/private/${fileId}${ext}`;
     return res.json({ url: fileUrl });
 });
 
