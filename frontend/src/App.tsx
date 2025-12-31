@@ -137,6 +137,18 @@ function App() {
     });
   }
 
+  function convertBytes(size: number): string {
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
+  }
+
   return (
     <>
       {loggedIn ? (
@@ -147,7 +159,7 @@ function App() {
               {publicFiles.map(file => (
                 <li key={file.fileId}>
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
-                    {file.originalName} ({(file.size / 1024).toFixed(2)} KB)
+                    {file.originalName} ({convertBytes(file.size)})
                   </a>
                 </li>
               ))}
@@ -159,7 +171,7 @@ function App() {
               {privateFiles.map(file => (
                 <li key={file.fileId}>
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
-                    {file.originalName} ({(file.size / 1024).toFixed(2)} KB)
+                    {file.originalName} ({convertBytes(file.size)})
                   </a>
                 </li>
               ))}
