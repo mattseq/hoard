@@ -73,6 +73,7 @@ body {
 
 .files-container h2 {
   margin-bottom: 1em;
+  text-align: center;
 }
 
 .files-container ul {
@@ -100,4 +101,11 @@ body {
   text-decoration: underline;
   color: var(--color-secondary);
   cursor: pointer;
+}
+
+.drop-text {
+  margin-top: 1em;
+  font-style: italic;
+  color: var(--color-text);
+  text-align: center;
 }

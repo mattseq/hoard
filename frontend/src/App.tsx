@@ -164,6 +164,7 @@ function App() {
                 </li>
               ))}
             </ul>
+            <p className='drop-text'>Drag and drop files to upload</p>
           </FileDropZone>
           <FileDropZone onFileUpload={privateFileUpload} className="private-files files-container">
             <h2>Private Files</h2>
@@ -176,6 +177,7 @@ function App() {
                 </li>
               ))}
             </ul>
+            <p className='drop-text'>Drag and drop files to upload</p>
           </FileDropZone>
         </div>
       ) : (
