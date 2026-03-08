@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
-import './App.css'
-import FileDropZone from './FileDropZone';
+import { useState, useEffect } from "react";
+import "./App.css";
+import FileDropZone from "./FileDropZone";
 
 function App() {
-
   interface FileMeta {
     fileId: string;
     originalName: string;
@@ -22,123 +21,122 @@ function App() {
   const [privateFiles, setPrivateFiles] = useState<FileMeta[]>([]);
 
   useEffect(() => {
-    fetch ('/api/auth', {
-      method: 'GET',
-      credentials: 'include',
-    }).then(res => {
-      if (res.ok) {
-        setLoggedIn(true);
-        fetchPublicFiles();
-        fetchPrivateFiles();
-        console.log(res);
-      } else {
-        setLoggedIn(false);
-        console.log(res)
-      }
+    fetch("/api/auth", {
+      method: "GET",
+      credentials: "include",
     })
-    .catch(() => setLoggedIn(false));
+      .then((res) => {
+        if (res.ok) {
+          setLoggedIn(true);
+          fetchPublicFiles();
+          fetchPrivateFiles();
+          console.log(res);
+        } else {
+          setLoggedIn(false);
+          console.log(res);
+        }
+      })
+      .catch(() => setLoggedIn(false));
   }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
+    const res = await fetch("/api/login", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify({ username, password }),
     });
 
     if (res.ok) {
-      console.log('Login successful!');
+      console.log("Login successful!");
       setLoggedIn(true);
       fetchPublicFiles();
       fetchPrivateFiles();
     } else {
-      console.log('Login failed. Please check your credentials.');
+      console.log("Login failed. Please check your credentials.");
       setLoggedIn(false);
     }
   }
 
   async function fetchPublicFiles() {
-    const res = await fetch('/files/public', {
-      method: 'GET',
-      credentials: 'include',
+    const res = await fetch("/files/public", {
+      method: "GET",
+      credentials: "include",
     });
 
     if (res.ok) {
       const data = await res.json();
-      console.log('Public files:', data);
+      console.log("Public files:", data);
       setPublicFiles(data);
     } else {
-      console.log('Failed to fetch public files.');
+      console.log("Failed to fetch public files.");
     }
   }
   async function fetchPrivateFiles() {
-    const res = await fetch('/files/private', {
-      method: 'GET',
-      credentials: 'include',
+    const res = await fetch("/files/private", {
+      method: "GET",
+      credentials: "include",
     });
 
     if (res.ok) {
       const data = await res.json();
-      console.log('Private files:', data);
+      console.log("Private files:", data);
       setPrivateFiles(data);
     } else {
-      console.log('Failed to fetch private files.');
+      console.log("Failed to fetch private files.");
     }
   }
 
   function publicFileUpload(file: File) {
     const formData = new FormData();
-    formData.append('file', file);
-    
-    fetch('/api/upload/public', {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
+    formData.append("file", file);
+
+    fetch("/api/upload/public", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
     })
-    .then(res => {
-      if (res.ok) {
-        console.log('File uploaded successfully!');
-        fetchPublicFiles();
-      }
-      else {
-        console.log('File upload failed.');
-      }
-    })
-    .catch(() => {
-      console.log('File upload failed.');
-    });
+      .then((res) => {
+        if (res.ok) {
+          console.log("File uploaded successfully!");
+          fetchPublicFiles();
+        } else {
+          console.log("File upload failed.");
+        }
+      })
+      .catch(() => {
+        console.log("File upload failed.");
+      });
   }
 
   function privateFileUpload(file: File) {
     const formData = new FormData();
-    formData.append('file', file);
-    
-    fetch('/api/upload/private', {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
+    formData.append("file", file);
+
+    fetch("/api/upload/private", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
     })
-    .then(res => {
-      if (res.ok) {
-        console.log('File uploaded successfully!');
-        fetchPrivateFiles();
-      }
-      else {
-        console.log('File upload failed.');
-      }
-    })
-    .catch(() => {
-      console.log('File upload failed.');
-    });
+      .then((res) => {
+        if (res.ok) {
+          console.log("File uploaded successfully!");
+          fetchPrivateFiles();
+        } else {
+          console.log("File upload failed.");
+        }
+      })
+      .catch(() => {
+        console.log("File upload failed.");
+      });
   }
 
   function convertBytes(size: number): string {
-    const units = ['B', 'KB', 'MB', 'GB'];
+    const units = ["B", "KB", "MB", "GB"];
     let unitIndex = 0;
 
     while (size >= 1024 && unitIndex < units.length - 1) {
@@ -153,10 +151,13 @@ function App() {
     <>
       {loggedIn ? (
         <div className="file-page">
-          <FileDropZone onFileUpload={publicFileUpload} className="public-files files-container">
+          <FileDropZone
+            onFileUpload={publicFileUpload}
+            className="public-files files-container"
+          >
             <h2>Public Files</h2>
             <ul>
-              {publicFiles.map(file => (
+              {publicFiles.map((file) => (
                 <li key={file.fileId}>
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
                     {file.originalName} ({convertBytes(file.size)})
@@ -164,12 +165,15 @@ function App() {
                 </li>
               ))}
             </ul>
-            <p className='drop-text'>Drag and drop files to upload</p>
+            <p className="drop-text">Drag and drop files to upload</p>
           </FileDropZone>
-          <FileDropZone onFileUpload={privateFileUpload} className="private-files files-container">
+          <FileDropZone
+            onFileUpload={privateFileUpload}
+            className="private-files files-container"
+          >
             <h2>Private Files</h2>
             <ul>
-              {privateFiles.map(file => (
+              {privateFiles.map((file) => (
                 <li key={file.fileId}>
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
                     {file.originalName} ({convertBytes(file.size)})
@@ -177,23 +181,35 @@ function App() {
                 </li>
               ))}
             </ul>
-            <p className='drop-text'>Drag and drop files to upload</p>
+            <p className="drop-text">Drag and drop files to upload</p>
           </FileDropZone>
         </div>
       ) : (
         <div className="login-page">
           <div className="login-container">
             <h2>Login</h2>
-            <form className='login-form' onSubmit={handleLogin}>
-              <input type="text" id="username" name="username" onChange={e => setUsername(e.target.value)} placeholder='Username' />
-              <input type="password" id="password" name="password" onChange={e => setPassword(e.target.value)} placeholder='Password' />
+            <form className="login-form" onSubmit={handleLogin}>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
+              />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+              />
               <button type="submit">Login</button>
             </form>
           </div>
         </div>
-      )}      
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
