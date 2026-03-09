@@ -91,11 +91,11 @@ function App() {
     }
   }
 
-  function publicFileUpload(file: File) {
+  async function publicFileUpload(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch("/api/upload/public", {
+    await fetch("/api/upload/public", {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -113,11 +113,11 @@ function App() {
       });
   }
 
-  function privateFileUpload(file: File) {
+  async function privateFileUpload(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch("/api/upload/private", {
+    await fetch("/api/upload/private", {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -132,6 +132,44 @@ function App() {
       })
       .catch(() => {
         console.log("File upload failed.");
+      });
+  }
+
+  async function publicFileDelete(fileId: string) {
+    console.log("Deleting public file with ID:", fileId);
+    await fetch(`/files/public/${fileId}`, {
+      method: "DELETE",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) {
+          console.log("File deleted successfully!");
+          fetchPublicFiles();
+        } else {
+          console.log("File deletion failed.");
+        }
+      })
+      .catch(() => {
+        console.log("File deletion failed.");
+      });
+  }
+
+  async function privateFileDelete(fileId: string) {
+    console.log("Deleting file with ID:", fileId);
+    await fetch(`/files/private/${fileId}`, {
+      method: "DELETE",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) {
+          console.log("File deleted successfully!");
+          fetchPrivateFiles();
+        } else {
+          console.log("File deletion failed.");
+        }
+      })
+      .catch(() => {
+        console.log("File deletion failed.");
       });
   }
 
@@ -162,6 +200,16 @@ function App() {
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
                     {file.originalName} ({convertBytes(file.size)})
                   </a>
+                  <button
+                    className="delete-button"
+                    onClick={() => publicFileDelete(file.fileId)}
+                  >
+                    <img
+                      className="delete-icon"
+                      src="https://img.icons8.com/?size=100&id=99961&format=png&color=FFFFFF"
+                      alt="delete button"
+                    />
+                  </button>
                 </li>
               ))}
             </ul>
@@ -178,6 +226,16 @@ function App() {
                   <a href={file.url} target="_blank" rel="noopener noreferrer">
                     {file.originalName} ({convertBytes(file.size)})
                   </a>
+                  <button
+                    className="delete-button"
+                    onClick={() => privateFileDelete(file.fileId)}
+                  >
+                    <img
+                      className="delete-icon"
+                      src="https://img.icons8.com/?size=100&id=99961&format=png&color=000000"
+                      alt="delete button"
+                    />
+                  </button>
                 </li>
               ))}
             </ul>

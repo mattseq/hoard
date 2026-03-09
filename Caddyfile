@@ -1,5 +1,12 @@
 :80 {
+
+    handle /files/public/* {
+        @notget not method GET
+        reverse_proxy @notget backend:5000
+    }
+    
     handle_path /files/public/* {
+        @get method Get
         root * /app/storage/public
         file_server
     }

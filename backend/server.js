@@ -151,28 +151,38 @@ app.get("/files/private/:file", authMiddleware, (req, res) => {
   return res.sendFile(filePath);
 });
 
-app.delete("/files/private/:file", authMiddleware, async (req, res) => {
-  const filePath = path.join(PRIVATE_STORAGE_DIR, req.params.file);
-  if (!fs.existsSync(filePath)) return res.sendStatus(404);
+app.delete("/files/public/:fileId", async (req, res) => {
+  const fileId = req.params.fileId;
+  const file = await knex("files").where({ fileId, isPublic: true }).first();
+
+  if (!file) return res.status(404).json({ message: "File not found" });
 
   // delete from storage
-  fs.unlinkSync(filePath);
+  if (fs.existsSync(file.path)) {
+    fs.unlinkSync(file.path);
+  }
 
   // delete metadata
-  await knex("files").where({ fileId: req.params.file }).del();
+  await knex("files").where({ fileId, isPublic: true }).del();
 
   return res.json({ message: "File deleted" });
 });
 
-app.delete("/files/public/:file", async (req, res) => {
-  const filePath = path.join(PUBLIC_STORAGE_DIR, req.params.file);
-  if (!fs.existsSync(filePath)) return res.sendStatus(404);
+app.delete("/files/private/:fileId", authMiddleware, async (req, res) => {
+  const fileId = req.params.fileId;
+  const file = await knex("files").where({ fileId, isPublic: false }).first();
+
+  if (!file) return res.status(404).json({ message: "File not found" });
 
   // delete from storage
-  fs.unlinkSync(filePath);
+  if (fs.existsSync(file.path)) {
+    fs.unlinkSync(file.path);
+  }
 
   // delete metadata
-  await knex("files").where({ fileId: req.params.file }).del();
+  await knex("files").where({ fileId, isPublic: false }).del();
+
+  return res.json({ message: "File deleted" });
 });
 
 app.get("/files/private", authMiddleware, async (req, res) => {
