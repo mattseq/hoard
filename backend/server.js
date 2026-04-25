@@ -44,6 +44,15 @@ knex.schema.hasTable("files").then((exists) => {
   }
 });
 
+knex.schema.hasTable("users").then((exists) => {
+  if (!exists) {
+    return knex.schema.createTable("users", (table) => {
+      table.string("username").primary();
+      table.string("password");
+    });
+  }
+});
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -65,14 +74,40 @@ app.get("/api/auth", authMiddleware, (req, res) => {
   return res.status(200).json({ loggedIn: true });
 });
 
-app.post("/api/login", (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
+
   if (username === process.env.USERNAME && password === process.env.PASSWORD) {
     req.session.user = { username };
     return res.status(200).json({ success: true });
   }
 
-  return res.status(401).json({ message: "Invalid credentials" });
+  const user = await knex("users").where({ username }).first();
+
+  if (!user || user.password !== password) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  req.session.user = { username };
+  return res.status(200).json({ success: true });
+});
+
+app.post("/api/signup", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (username == process.env.USERNAME) {
+    return res.status(400).json({ message: "Username already taken" });
+  }
+
+  const existingUser = await knex("users").where({ username }).first();
+  if (existingUser) {
+    return res.status(400).json({ message: "Username already taken" });
+  }
+
+  await knex("users").insert({ username, password });
+
+  req.session.user = { username };
+  return res.status(200).json({ success: true });
 });
 
 app.post("/api/upload/public", multer().single("file"), async (req, res) => {

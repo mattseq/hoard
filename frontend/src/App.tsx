@@ -39,25 +39,27 @@ function App() {
       .catch(() => setLoggedIn(false));
   }, []);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
 
-    const res = await fetch("/api/login", {
+    const submitter = (e.nativeEvent as SubmitEvent)
+      .submitter as HTMLButtonElement | null;
+
+    const action = submitter?.value;
+    const endpoint = action === "signup" ? "/api/signup" : "/api/login";
+
+    const res = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ username, password }),
     });
 
     if (res.ok) {
-      console.log("Login successful!");
       setLoggedIn(true);
       fetchPublicFiles();
       fetchPrivateFiles();
     } else {
-      console.log("Login failed. Please check your credentials.");
       setLoggedIn(false);
     }
   }
@@ -232,7 +234,7 @@ function App() {
                   >
                     <img
                       className="delete-icon"
-                      src="https://img.icons8.com/?size=100&id=99961&format=png&color=000000"
+                      src="https://img.icons8.com/?size=100&id=99961&format=png&color=FFFFFF"
                       alt="delete button"
                     />
                   </button>
@@ -246,7 +248,7 @@ function App() {
         <div className="login-page">
           <div className="login-container">
             <h2>Login</h2>
-            <form className="login-form" onSubmit={handleLogin}>
+            <form className="login-form" onSubmit={handleAuth}>
               <input
                 type="text"
                 id="username"
@@ -261,7 +263,12 @@ function App() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
               />
-              <button type="submit">Login</button>
+              <button type="submit" value="login">
+                Login
+              </button>
+              <button type="submit" value="signup">
+                Sign Up
+              </button>
             </form>
           </div>
         </div>
