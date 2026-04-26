@@ -5,6 +5,7 @@ const path = require("path");
 const { nanoid } = require("nanoid");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const PORT = 5000;
@@ -40,6 +41,7 @@ knex.schema.hasTable("files").then((exists) => {
       table.string("type");
       table.timestamp("uploadedAt").defaultTo(knex.fn.now());
       table.boolean("isPublic");
+      table.string("owner").nullable();
     });
   }
 });
@@ -83,13 +85,14 @@ app.post("/api/login", async (req, res) => {
   }
 
   const user = await knex("users").where({ username }).first();
+  if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-  if (!user || user.password !== password) {
+  if (await bcrypt.compare(password, user.password)) {
+    req.session.user = { username };
+    return res.status(200).json({ success: true });
+  } else {
     return res.status(401).json({ message: "Invalid credentials" });
   }
-
-  req.session.user = { username };
-  return res.status(200).json({ success: true });
 });
 
 app.post("/api/signup", async (req, res) => {
@@ -104,7 +107,12 @@ app.post("/api/signup", async (req, res) => {
     return res.status(400).json({ message: "Username already taken" });
   }
 
-  await knex("users").insert({ username, password });
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await knex("users").insert({
+    username,
+    password: hashedPassword,
+  });
 
   req.session.user = { username };
   return res.status(200).json({ success: true });
@@ -134,6 +142,7 @@ app.post("/api/upload/public", multer().single("file"), async (req, res) => {
     type: file.mimetype,
     uploadedAt: new Date().toISOString(),
     isPublic: true,
+    owner: null,
   };
 
   await knex("files").insert(meta);
@@ -171,6 +180,7 @@ app.post(
       type: file.mimetype,
       uploadedAt: new Date().toISOString(),
       isPublic: false,
+      owner: req.session.user.username,
     };
     await knex("files").insert(meta);
 
@@ -180,7 +190,14 @@ app.post(
   },
 );
 
-app.get("/files/private/:file", authMiddleware, (req, res) => {
+app.get("/files/private/:file", authMiddleware, async (req, res) => {
+  const queriedPath = path.join(PRIVATE_STORAGE_DIR, req.params.file);
+  const file = await knex("files").where({ path: queriedPath }).first();
+
+  if (file && file.owner != req.session.user.username) {
+    return res.sendStatus(404);
+  }
+
   const filePath = path.join(PRIVATE_STORAGE_DIR, req.params.file);
   if (!fs.existsSync(filePath)) return res.sendStatus(404);
   return res.sendFile(filePath);
@@ -205,9 +222,11 @@ app.delete("/files/public/:fileId", async (req, res) => {
 
 app.delete("/files/private/:fileId", authMiddleware, async (req, res) => {
   const fileId = req.params.fileId;
-  const file = await knex("files").where({ fileId, isPublic: false }).first();
+  const file = await knex("files")
+    .where({ fileId, isPublic: false, owner: req.session.user.username })
+    .first();
 
-  if (!file) return res.status(404).json({ message: "File not found" });
+  if (!file) return res.sendStatus(404).json({ message: "File not found" });
 
   // delete from storage
   if (fs.existsSync(file.path)) {
@@ -222,7 +241,10 @@ app.delete("/files/private/:fileId", authMiddleware, async (req, res) => {
 
 app.get("/files/private", authMiddleware, async (req, res) => {
   try {
-    const files = await knex("files").where({ isPublic: false });
+    const files = await knex("files").where({
+      isPublic: false,
+      owner: req.session.user.username,
+    });
 
     return res.json(files);
   } catch (err) {

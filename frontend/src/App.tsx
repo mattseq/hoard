@@ -61,6 +61,8 @@ function App() {
       fetchPrivateFiles();
     } else {
       setLoggedIn(false);
+      const error = await res.json();
+      alert(error.message);
     }
   }
 
