@@ -6,11 +6,11 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-      - /mnt/drive/hoard_data:/app/storage
+      - ${STORAGE_LOCATION}:/app/storage
     environment:
-      - SESSION_SECRET_KEY=very_secret_key
-      - USERNAME=admin
-      - PASSWORD=password
+      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY}
+      - USERNAME=${USERNAME}
+      - PASSWORD=${PASSWORD}
   caddy:
     image: caddy:2.10.2-alpine
     ports:
@@ -20,7 +20,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
-      - /mnt/drive/hoard_data:/app/storage
+      - ${STORAGE_LOCATION}:/app/storage
       - ./frontend/dist:/srv
     depends_on:
       - backend

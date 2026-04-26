@@ -15,6 +15,7 @@ A simple, self-hostable file hosting and sharing platform with public and privat
 - Public and private file uploads
 - RESTful API for file management
 - Web dashboard (React frontend)
+- Multi-user support with configured admin account
 - User authentication (session-based)
 - File metadata in SQLite database
 - Dockerized deployment (Caddy, backend, frontend)
@@ -35,19 +36,14 @@ cd hoard
 
 ### 2. Configure environment variables
 
-Modify the `docker-compose.yml` file to configure these environment variables:
+Modify the `.env` file to configure these environment variables:
 
-- SESSION_SECRET_KEY
-- USERNAME
-- PASSWORD
+- SESSION_SECRET_KEY: session key
+- USERNAME: admin username
+- PASSWORD: admin password
+- STORAGE_LOCATION: location for file storage and database
 
-### 3. Configure file storage locations
-
-Modify the `docker-compose.yml` file to configure your file storage location.
-By default: `/mnt/drive/hoard_data`
-This is mounted in both the backend and Caddy containers so be sure to modify both instances, replacing `/mnt/drive/` with your desired location.
-
-### 4. Build static frontend files
+### 3. Build static frontend files
 
 Navigate to the ./frontend/ folder and build static files into ./frontend/dist for Caddy to serve.
 
@@ -57,7 +53,7 @@ npm install
 npm run build
 ```
 
-### 5. Build and run with Docker Compose
+### 4. Build and run with Docker Compose
 
 ```
 docker-compose up --build
@@ -66,13 +62,14 @@ docker-compose up --build
 - Caddy serves the frontend on port 80
 - Backend API runs at port 5000 and is proxied to port 80 by Caddy
 
-### 4. Access the web dashboard
+### 5. Access the web dashboard
 
 Open your browser to `http://localhost` (or your IP)
 
 ## API Endpoints
 
 - `POST /api/login` — Log in (JSON: `{ username, password }`)
+- `POST /api/signup` — Sign up (JSON: `{ username, password }`)
 - `GET /api/auth` — Check authentication status
 - `POST /api/upload` — Upload a file (multipart/form-data)
 - `GET /files/public` — List public files (JSON)
@@ -81,11 +78,6 @@ Open your browser to `http://localhost` (or your IP)
 - `GET /files/private/:file` — Download/view private file (auth required)
 - `DELETE /files/public/:fileId` - Delete public file by ID
 - `DELETE /files/private/:fileId` - Delete private file by ID (auth required)
-
-## File Storage
-
-- Storage location can be configured in `docker-compose.yml`. By default:`/mnt/drive/hoard_data`
-- File metadata stored in a SQLite database inside `/mnt/drive/hoard_data`
 
 ## Security Notes
 
